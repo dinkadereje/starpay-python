@@ -5,13 +5,13 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="starpay-ethiopia",
-    version="0.1.1",
+    version="0.1.2",
     description="Unofficial Python client for the StarPay API (Ethiopia)",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="StarPay Ethiopia / Community",
     author_email="developer@starpayethiopia.com",
-    url="https://github.com/starpay/starpay-python",
+    url="https://github.com/dinkadereje/starpay-python",
     packages=find_packages(),
     install_requires=[],
     keywords=["starpay", "payment", "ethiopia", "api", "gateway"],
