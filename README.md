@@ -1,0 +1,121 @@
+# StarPay Python
+
+A robust, framework-agnostic Python client for the [StarPay API](https://developer.starpayethiopia.com/) (Ethiopia's premier payment gateway).
+
+[![PyPI version](https://badge.fury.io/py/starpay-ethiopia.svg)](https://badge.fury.io/py/starpay-ethiopia)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+This library allows you to easily integrate StarPay into your Python application (Django, Flask, FastAPI, or pure Python). It handles order creation and secure webhook signature verification.
+
+---
+
+## 📦 Installation
+
+Install via `pip`:
+
+```bash
+pip install starpay-ethiopia
+```
+
+---
+
+## 🚀 Quick Start
+
+### 1. Initialize the Client
+
+You will need your API URL, API Secret, and Merchant ID from the StarPay developer dashboard.
+
+```python
+from starpay import StarPayClient
+
+client = StarPayClient(
+    api_url="https://sandbox-api.starpayethiopia.com/v1/starpay-api",  # Or production URL
+    api_secret="your_api_secret_here",
+    merchant_id="your_merchant_id_here"
+)
+```
+
+### 2. Create a Payment Order
+
+Use `create_order` to generate a secure checkout URL to which you redirect your user.
+
+```python
+from starpay import StarPayAPIError
+
+try:
+    payment_url = client.create_order(
+        amount=150.50,
+        description="Premium Subscription",
+        customer_name="Abebe Bikila",
+        customer_phone="+251900000000",
+        callback_url="https://yourdomain.com/api/webhooks/starpay/",
+        items=[
+            {
+                "productId": "sub-001",
+                "quantity": 1,
+                "item_name": "Monthly Premium",
+                "unit_price": 150.50
+            }
+        ],
+        metadata={"internal_order_id": "ORD-998877"}
+    )
+    
+    print(f"Redirect user to: {payment_url}")
+    
+except StarPayAPIError as e:
+    print(f"Failed to create order: {e}")
+```
+
+### 3. Verify Webhook Signatures
+
+When a user completes a payment, StarPay will send an HTTP POST request to your `callback_url`. You **must** verify the signature to ensure the request genuinely came from StarPay.
+
+Here is an example of verifying the signature in a typical webhook handler:
+
+```python
+from starpay import StarPaySignatureError
+
+def handle_webhook(request):
+    payload = request.json()                  # Parse JSON body
+    timestamp = request.headers.get("X-Timestamp")
+    signature = request.headers.get("X-Signature")
+
+    try:
+        is_valid = client.verify_signature(
+            payload=payload,
+            timestamp=timestamp,
+            signature=signature
+        )
+        
+        if is_valid:
+            # ✅ Payment is authentic!
+            order_id = payload.get("metadata", {}).get("internal_order_id")
+            payment_status = payload.get("status")
+            print(f"Order {order_id} status is now {payment_status}")
+            return {"status": "success"}, 200
+        else:
+            # ❌ Invalid signature
+            return {"error": "Unauthorized"}, 401
+            
+    except StarPaySignatureError as e:
+        print(f"Signature verification failed: {e}")
+        return {"error": "Bad Request"}, 400
+```
+
+---
+
+## 🛠 Advanced
+
+### Error Handling
+The library exports custom exceptions in `starpay.exceptions`:
+- `StarPayError`: Base exception for all StarPay errors.
+- `StarPayAPIError`: Raised when the StarPay API returns a non-success response or fails to connect.
+- `StarPaySignatureError`: Raised when webhook signature verification fails due to malformed data.
+
+### Framework Agnostic
+This library uses Python's standard `urllib` and `hmac` libraries under the hood. It has **zero external dependencies**, making it incredibly lightweight and compatible with any Python environment >= 3.7.
+
+---
+
+## 📄 License
+This project is licensed under the MIT License.
