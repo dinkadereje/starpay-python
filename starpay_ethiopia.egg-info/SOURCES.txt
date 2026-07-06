@@ -1,9 +1,0 @@
-README.md
-setup.py
-starpay/__init__.py
-starpay/client.py
-starpay/exceptions.py
-starpay_ethiopia.egg-info/PKG-INFO
-starpay_ethiopia.egg-info/SOURCES.txt
-starpay_ethiopia.egg-info/dependency_links.txt
-starpay_ethiopia.egg-info/top_level.txt
